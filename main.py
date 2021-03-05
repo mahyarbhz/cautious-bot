@@ -18,12 +18,32 @@ async def on_ready():
     print('Bot Onlined')
 
 
-@client.command(aliases=['help', 'helper', 'helping'])
+all_commands = ['help', 'helps', 'helper', 'helping',
+                'GG', 'Gg', 'gg', 'gG',
+                'status', 'setstatus', 'setst', 'set_status',
+                'activity', 'act', 'active',
+                'clear', 'cl']
+
+
+@client.event
+async def on_message(infox):
+    if infox.content[0:1] == ']':
+        command = infox.content[1:].split()[0]
+        if command not in all_commands:
+            await infox.channel.send(">>> " + infox.author.mention + " In command vojud nadarad!")
+        else:
+            await client.process_commands(infox)
+    else:
+        pass
+
+
+@client.command(aliases=['help', 'helps', 'helper', 'helping'])
 async def command_help(infox):
     help_embed = discord.Embed(
         colour=0x0A75AD,
         title="Help ❓",
-        description="This is Help"
+        description="Dastoorate Admin ha:\n```]status [status]```\n```]activity [activity(playing, watching, "
+                    "listening)]```\n```]clear [meghdar]``` "
     )
     help_embed.set_footer(text='Hope you used this helps')
     help_embed.set_author(name="MahyarNV", url='http://test.mbehzadi.ir')
@@ -76,15 +96,15 @@ async def command_activity(infox, act_type='', *, act_text='...'):
         await infox.send(">>> " + infox.author.mention + " you don't have permission to do that❗❌")
 
 
-@client.command(aliases=['clear'])
+@client.command(aliases=['clear', 'cl'])
 async def command_clear(infox, clear_count=0):
     if clear_count == 0:
         await infox.send("0 message nemitavanad pak shavad❌")
     else:
         await infox.channel.purge(limit=int(clear_count) + 1)
         await infox.send(">>> " + str(clear_count) + " message pak shod✔")
-        sleep(2)
-        await infox.channel.purge(limit=1)
+        # sleep(2)
+        # await infox.channel.purge(limit=1)
 
-
+# End Incomplete branch
 client.run(CONFIG.TOKEN)
