@@ -3,14 +3,18 @@ from mysql.connector import (connection, MySQLConnection, Error)
 cnx = connection.MySQLConnection(user='root', password='pass',
                                  host='127.0.0.1',
                                  database='bot')
+
+# Connection test
 cursor = cnx.cursor()
 cursor.execute(("SELECT * FROM users"))
 rows = cursor.fetchall()
 print('Total Row(s):', cursor.rowcount)
 cursor.close()
+# End Connection test
 
 import discord
 from discord.ext import commands
+from discord.utils import get
 from asyncio import *
 from time import *
 
@@ -34,7 +38,10 @@ all_commands = ['help', 'helps', 'helper', 'helping',
                 'status', 'setstatus', 'setst', 'set_status',
                 'activity', 'act', 'active',
                 'clear', 'cl',
-                'rank', 'score', 'level']
+                'rank', 'score', 'level',
+                'mute', 'Mute',
+                'unmute', 'Unmute', 'unMute', 'UnMute'
+                'pedar']
 
 
 @client.event
@@ -43,57 +50,31 @@ async def on_message(infox):
         command = infox.content[1:].split()[0]
         if command not in all_commands:
             await infox.channel.send(">>> " + infox.author.mention + " In command vojud nadarad!")
+
         else:
             await client.process_commands(infox)
+
     else:
         cursor = cnx.cursor()
-        cursor.execute(("SELECT * FROM users WHERE username LIKE " + str(infox.author.id)))
-        rows = cursor.fetchall()
-        if cursor.rowcount == 0:
-            cursor.close()
+        cursor.execute(("SELECT * FROM users WHERE username LIKE " + str(infox.author.id) + " AND guild LIKE " + str(infox.guild.id)))
+        row = cursor.fetchone()
+        cursor.close()
+        if row:
+            new_score = int(row[2]) + 5
             cursor = cnx.cursor()
-            cursor.execute(
-                "INSERT INTO users (username, score, guild) VALUES (%d, %d, %d) " % (
-                    infox.author.id, 0, infox.guild.id))
+            cursor.execute("UPDATE users SET score=%d WHERE idusers='%d'" % (new_score, row[0]))
             cnx.commit()
             cursor.close()
-        else:
-            cursor.close()
-        j = 0
-        for row in rows:
-            if int(infox.author.id) == int(row[1]):
-                if int(infox.guild.id) == int(row[3]):
-                    new_score = int(row[2]) + 5
-                    cursor = cnx.cursor()
-                    cursor.execute(
-                        "UPDATE users SET score=%s WHERE idusers='%d'" % (
-                            new_score, row[0]))
-                    cnx.commit()
-                    cursor.close()
-                    if new_score % 100 == 0:
-                        rank = new_score // 100
-                        await infox.channel.send(
-                            ">>> " + infox.author.mention + " shoma be levele " + str(rank) + " residid, mobarake :)) ")
-                elif j < len(rows):
-                    continue
-                else:
-                    cursor = cnx.cursor()
-                    cursor.execute(
-                        "INSERT INTO users (username, score, guild) VALUES (%d, %d, %d) " % (
-                            infox.author.id, 0, infox.guild.id))
-                    cnx.commit()
-                    cursor.close()
+            if new_score % 100 == 0:
+                rank = new_score // 100
+                await infox.channel.send(
+                    ">>> " + infox.author.mention + " shoma be levele " + str(rank) + " residid, mobarake :)) ")
 
-            elif j < len(rows)-1:
-                continue
-            else:
-                cursor = cnx.cursor()
-                cursor.execute(
-                    "INSERT INTO users (username, score, guild) VALUES (%d, %d, %d) " % (
-                        infox.author.id, 0, infox.guild.id))
-                cnx.commit()
-                cursor.close()
-            j += 1
+        else:
+            cursor = cnx.cursor()
+            cursor.execute("INSERT INTO users (username, score, guild) VALUES (%d, %d, %d) " % (infox.author.id, 0, infox.guild.id))
+            cnx.commit()
+            cursor.close()
 
 
 @client.command(aliases=['help', 'helps', 'helper', 'helping'])
@@ -119,10 +100,8 @@ async def command_gg(infox, *, pos='person'):
 @client.command(aliases=['status', 'setstatus', 'setst', 'set_status'])
 async def command_status(infox, status_type):
     if infox.message.author.guild_permissions.administrator:
-
         if status_type == 'idle':
             await client.change_presence(status=discord.Status.idle)
-            print('taghire status be idle')
 
         elif status_type == 'dnd':
             await client.change_presence(status=discord.Status.dnd)
@@ -178,15 +157,45 @@ async def command_clear(infox, clear_count=0):
 @client.command(aliases=['rank', 'score', 'level'])
 async def command_rank(infox):
     cursor = cnx.cursor()
-    cursor.execute(("SELECT * FROM users WHERE username LIKE " + str(infox.author.id)))
-    rows = cursor.fetchall()
+    cursor.execute(("SELECT * FROM users WHERE username LIKE " + str(infox.author.id) + " AND guild LIKE " + str(infox.guild.id)))
+    row = cursor.fetchone()
     cursor.close()
-    for row in rows:
-        if int(infox.author.id) == int(row[1]):
-            if int(infox.guild.id) == int(row[3]):
-                score = int(row[2])
-                await infox.send(">>> " + infox.author.mention + " ranke shoma " + str(score // 100) + " ast!")
-            else:
-                continue
+    if row:
+        score = int(row[2])
+        await infox.send(">>> " + infox.author.mention + " ranke shoma " + str(score // 100) + " ast!")
+
+    else:
+        await infox.send(">>> " + infox.author.mention + " shoma leveli nadarid!")
+
+
+@client.command(aliases=['mute', 'Mute'])
+async def command_mute(infox, member: discord.Member = ''):
+    if infox.message.author.guild_permissions.administrator:
+        if member != '':
+            role = get(infox.guild.roles, name="Muted")
+            await member.add_roles(role)
+            await infox.send(">>> " + infox.author.mention + " user e morede nazar mute shod!")
+
+        else:
+            await infox.send(">>> " + infox.author.mention + " bayad memberi ra mention konid!")
+
+    else:
+        await infox.send(">>> " + infox.author.mention + " dastresie lazem baraye mute kardan nadarid!")
+
+
+@client.command(aliases=['unmute', 'Unmute', 'unMute', 'UnMute'])
+async def command_unmute(infox, member: discord.Member = ''):
+    if infox.message.author.guild_permissions.administrator:
+        if member != '':
+            role = get(infox.guild.roles, name="Muted")
+            await member.remove_roles(role)
+            await infox.send(">>> " + infox.author.mention + " user e morede nazar unmute shod!")
+
+        else:
+            await infox.send(">>> " + infox.author.mention + " bayad memberi ra mention konid!")
+
+    else:
+        await infox.send(">>> " + infox.author.mention + " dastresie lazem baraye mute kardan nadarid!")
+
 
 client.run(CONFIG.TOKEN)
