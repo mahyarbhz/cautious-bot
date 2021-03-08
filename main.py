@@ -6,7 +6,7 @@ cnx = connection.MySQLConnection(user='root', password='pass',
 
 # Connection test
 cursor = cnx.cursor()
-cursor.execute(("SELECT * FROM users"))
+cursor.execute("SELECT * FROM users")
 rows = cursor.fetchall()
 print('Total Row(s):', cursor.rowcount)
 cursor.close()
