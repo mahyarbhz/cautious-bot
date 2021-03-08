@@ -82,10 +82,15 @@ async def command_help(infox):
     help_embed = discord.Embed(
         colour=0x0A75AD,
         title="Help ❓",
-        description="Dastoorate Admin ha:" \
+        description="Dastoorate admin ha:" \
                     "```]status [status]```" \
                     "```]activity [activity] [matn]```" \
                     "```]clear [meghdar]```" \
+                    "```]mute [mention]```" \
+                    "```]unmute [mention]```" \
+                    "\n" \
+                    "Dastoorate public:" \
+                    "```]rank```"
         )
     help_embed.set_footer(text='Hope you used this helps')
     help_embed.set_author(name="MahyarNV", url='http://test.mbehzadi.ir')
