@@ -21,8 +21,9 @@ import random
 
 
 class CONFIG:
-    TOKEN = ''
-    PREFIX = ']'
+    TOKEN = '' #your bot token
+    BOT_ID = '' #your bot, user id
+    PREFIX = ']' #you can change this prefix by yourself
 
 
 client = commands.Bot(command_prefix=CONFIG.PREFIX)
@@ -56,39 +57,39 @@ async def on_message(infox):
     if infox.content[0:1] == ']':
         command = infox.content[1:].split()[0]
         if command not in all_commands:
-            await infox.channel.send(">>> " + infox.author.mention + " In command vojud nadarad!")
+            await infox.channel.send(">>> {0} In command vojud nadarad!".format(infox.author.mention))
 
         else:
             await client.process_commands(infox)
 
     else:
-        if row:
-            cursor = cnx.cursor()
-            sql = "SELECT * FROM response WHERE response_id = '{0}'".format(row[0])
-            cursor.execute(sql)
-            responses = cursor.fetchall()
-            cursor.close()
-            random_response = random.choice(responses)
-            response_text = random_response[2]
-            await infox.channel.send(
-                "{0}".format(response_text))
-
-        cursor = cnx.cursor()
-        sql = "SELECT * FROM users WHERE username = {0} AND guild = {1}".format(infox.author.id, infox.guild.id)
-        cursor.execute(sql)
-        row = cursor.fetchone()
-        cursor.close()
-        if row:
-            new_score = int(row[2]) + 5
-            cursor = cnx.cursor()
-            sql = "UPDATE users SET score = {0} WHERE idusers = {1}".format(new_score, row[0])
-            cursor.execute(sql)
-            cnx.commit()
-            cursor.close()
-            if new_score % 100 == 0:
-                rank = new_score // 100
+        if infox.author.id != int(CONFIG.BOT_ID):
+            if row:
+                cursor = cnx.cursor()
+                sql = "SELECT * FROM response WHERE response_id = '{0}'".format(row[0])
+                cursor.execute(sql)
+                responses = cursor.fetchall()
+                cursor.close()
+                random_response = random.choice(responses)
+                response_text = random_response[2]
                 await infox.channel.send(
-                    ">>> " + infox.author.mention + " shoma be levele " + str(rank) + " residid, mobarake :)) ")
+                    "{0}".format(response_text))
+
+            cursor = cnx.cursor()
+            sql = "SELECT * FROM users WHERE username = {0} AND guild = {1}".format(infox.author.id, infox.guild.id)
+            cursor.execute(sql)
+            row = cursor.fetchone()
+            cursor.close()
+            if row:
+                new_score = int(row[2]) + 5
+                cursor = cnx.cursor()
+                sql = "UPDATE users SET score = {0} WHERE idusers = {1}".format(new_score, row[0])
+                cursor.execute(sql)
+                cnx.commit()
+                cursor.close()
+                if new_score % 100 == 0:
+                    rank = new_score // 100
+                    await infox.channel.send(">>> {0} GG, ranke {1} mobarake be mola :))".format(infox.author.mention, rank))
 
         else:
             cursor = cnx.cursor()
@@ -120,7 +121,7 @@ async def command_help(infox):
 
 @client.command(aliases=['GG', 'Gg', 'gg', 'gG'])
 async def command_gg(infox, *, pos='person'):
-    await infox.send(">>> " + infox.author.mention + ' you are a GG ' + pos + ' ;)')
+    await infox.send(">>> {0} you are a GG {1} ;)".format(infox.author.mention, pos))
 
 
 @client.command(aliases=['status', 'setstatus', 'setst', 'set_status'])
@@ -136,10 +137,10 @@ async def command_status(infox, status_type):
             await client.change_presence(status=discord.Status.online)
 
         else:
-            await infox.send(">>> " + infox.author.mention + ' Status e morede nazar vojud nadarad be mola!')
+            await infox.send(">>> {0} Status e morede nazar vojud nadarad be mola!".format(infox.author.mention))
 
     else:
-        await infox.send(">>> " + infox.author.mention + " dastresi nadari be mola!")
+        await infox.send(">>> {0} dastresi nadari be mola!".format(infox.author.mention))
 
 
 @client.command(aliases=['activity', 'act', 'active'])
@@ -158,13 +159,13 @@ async def command_activity(infox, act_type='', *, act_text='...'):
                     activity=discord.Activity(type=discord.ActivityType.listening, name=act_text))
 
             else:
-                await infox.send(">>> " + infox.author.mention + ' activitie e morede nazar vojud nadarad be mola!')
+                await infox.send(">>> {0} activitie e morede nazar vojud nadarad be mola!".format(infox.author.mention))
 
         else:
-            await infox.send(">>> " + infox.author.mention + " activitie bayad matn dashte bashe be mola!")
+            await infox.send(">>> {0} activitie bayad matn dashte bashe be mola!".format(infox.author.mention))
 
     else:
-        await infox.send(">>> " + infox.author.mention + " dastresi nadari be mola!")
+        await infox.send(">>> {0} dastresi nadari be mola!".format(infox.author.mention))
 
 
 @client.command(aliases=['clear', 'cl'])
@@ -188,10 +189,10 @@ async def command_rank(infox):
     cursor.close()
     if row:
         score = int(row[2])
-        await infox.send(">>> " + infox.author.mention + " ranke shoma " + str(score // 100) + " ast!")
+        await infox.send(">>> {0} ranke shoma {1} ast!".format(infox.author.mention, score // 100))
 
     else:
-        await infox.send(">>> " + infox.author.mention + " shoma leveli nadarid!")
+        await infox.send(">>> {0} shoma leveli nadarid!".format(infox.author.mention))
 
 
 @client.command(aliases=['mute', 'Mute'])
@@ -200,13 +201,13 @@ async def command_mute(infox, member: discord.Member = ''):
         if member != '':
             role = discord.utils.get(infox.guild.roles, name="Muted")
             await member.add_roles(role)
-            await infox.send(">>> " + infox.author.mention + " user e morede nazar mute shod!")
+            await infox.send(">>> {0} user e morede nazar mute shod!".format(infox.author.mention))
 
         else:
-            await infox.send(">>> " + infox.author.mention + " bayad memberi ra mention konid!")
+            await infox.send(">>> {0} bayad memberi ra mention konid!".format(infox.author.mention))
 
     else:
-        await infox.send(">>> " + infox.author.mention + " dastresi nadari be mola!")
+        await infox.send(">>> {0} dastresi nadari be mola!".format(infox.author.mention))
 
 
 @client.command(aliases=['unmute', 'Unmute', 'unMute', 'UnMute'])
@@ -215,13 +216,13 @@ async def command_unmute(infox, member: discord.Member = ''):
         if member != '':
             role = discord.utils.get(infox.guild.roles, name="Muted")
             await member.remove_roles(role)
-            await infox.send(">>> " + infox.author.mention + " user e morede nazar unmute shod!")
+            await infox.send(">>> {0} user e morede nazar unmute shod!".format(infox.author.mention))
 
         else:
-            await infox.send(">>> " + infox.author.mention + " bayad memberi ra mention konid!")
+            await infox.send(">>> {0} bayad memberi ra mention konid!".format(infox.author.mention))
 
     else:
-        await infox.send(">>> " + infox.author.mention + " dastresi nadari be mola!")
+        await infox.send(">>> {0} dastresi nadari be mola!".format(infox.author.mention))
 
 
 @client.command(aliases=['response'])
@@ -261,13 +262,13 @@ async def command_response(infox, action='', response_to='', responses=''):
                             cnx.commit()
                             cursor.close()
 
-                        await infox.send(">>> " + infox.author.mention + " response add shod!")
+                        await infox.send(">>> {0} response add shod!".format(infox.author.mention))
 
                     else:
-                        await infox.send(">>> " + infox.author.mention + " text ba responsesh nemitune yeki bashe!")
+                        await infox.send(">>> {0} text ba responsesh nemitune yeki bashe!".format(infox.author.mention))
 
                 else:
-                    await infox.send(">>> " + infox.author.mention + " ino ghablan add dade budi, mituni deletesh koni!")
+                    await infox.send(">>> {0} ino ghablan add dade budi, mituni deletesh koni!".format(infox.author.mention))
 
             elif action == 'edit':
                 pass
@@ -296,16 +297,16 @@ async def command_response(infox, action='', response_to='', responses=''):
                 cursor.execute(sql)
                 cnx.commit()
                 cursor.close()
-                await infox.send(">>> " + infox.author.mention + " response delete shod!")
+                await infox.send(">>> {0} response delete shod!".format(infox.author.mention))
 
             else:
-                await infox.send(">>> " + infox.author.mention + " hamchin responsi sabt nashode bud!")
+                await infox.send(">>> {0} hamchin responsi sabt nashode bud!".format(infox.author.mention))
 
         else:
-            await infox.send(">>> " + infox.author.mention + " meghdar nadadi be mola!")
+            await infox.send(">>> {0} meghdar nadadi be mola!".format(infox.author.mention))
 
     else:
-        await infox.send(">>> " + infox.author.mention + " dastresi nadari be mola!")
+        await infox.send(">>> {0} dastresi nadari be mola!".format(infox.author.mention))
 
 
 @client.command(aliases=['responses'])
@@ -327,7 +328,9 @@ async def command_responses(infox):
                 responses_text = ''
                 for response in responses:
                     responses_text += '"{0}" '.format(response[2])
+
                 description += "id: ||{0}||, respond to: {1}, responses: {2} \n\n".format(row[1], row[3], responses_text)
+
             responses_embed = discord.Embed(
                 colour=0x0A75AD,
                 title="Responses",
@@ -347,7 +350,7 @@ async def command_responses(infox):
         await infox.send(embed=responses_embed)
 
     else:
-        await infox.send(">>> " + infox.author.mention + " dastresi nadari be mola!")
+        await infox.send(">>> {0} dastresi nadari be mola!".format(infox.author.mention))
 
 
 client.run(CONFIG.TOKEN)
