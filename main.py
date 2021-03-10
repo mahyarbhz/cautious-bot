@@ -143,7 +143,6 @@ async def command_status(infox, status_type):
 
 @client.command(aliases=['activity', 'act', 'active'])
 async def command_activity(infox, act_type='', *, act_text='...'):
-    print(infox)
     if infox.message.author.guild_permissions.administrator:
         if act_text != '...':
             if act_type == 'playing':
@@ -227,7 +226,7 @@ async def command_unmute(infox, member: discord.Member = ''):
 @client.command(aliases=['response'])
 async def command_response(infox, action='', response_to='', responses=''):
     if infox.message.author.guild_permissions.administrator:
-        if response_to != '' or responses !='' or action !='':
+        if response_to != '' and responses !='' and action !='':
             cursor = cnx.cursor()
             sql = "SELECT * FROM responses WHERE response_to LIKE '{0}'".format(response_to)
             cursor.execute(sql)
@@ -266,11 +265,33 @@ async def command_response(infox, action='', response_to='', responses=''):
             elif action == 'edit':
                 pass
 
-            elif action == 'delete':
-                pass
+        elif action == 'delete':
+            cursor = cnx.cursor()
+            sql = "SELECT * FROM responses WHERE gen_id = {0}".format(int(response_to))
+            cursor.execute(sql)
+            row = cursor.fetchone()
+            cursor.close()
+            if row:
+                cursor = cnx.cursor()
+                sql = "SELECT * FROM response WHERE response_id = {0}".format(row[0])
+                cursor.execute(sql)
+                responses = cursor.fetchall()
+                cursor.close()
+                for response in responses:
+                    cursor = cnx.cursor()
+                    sql = "DELETE FROM response WHERE id = {0}".format(response[0])
+                    cursor.execute(sql)
+                    cnx.commit()
+                    cursor.close()
+
+                cursor = cnx.cursor()
+                sql = "DELETE FROM responses WHERE gen_id = {0}".format(int(response_to))
+                cursor.execute(sql)
+                cnx.commit()
+                cursor.close()
 
             else:
-                await infox.send(">>> " + infox.author.mention + " in kari ke mikhay bokoni vojud nadare be mola!")
+                await infox.send(">>> " + infox.author.mention + " hamchin responsi sabt nashode bud!")
 
         else:
             await infox.send(">>> " + infox.author.mention + " meghdar nadadi be mola!")
@@ -294,7 +315,6 @@ async def command_responses(infox):
                 sql = "SELECT * FROM response WHERE response_id LIKE '{0}'".format(row[0])
                 cursor.execute(sql)
                 responses = cursor.fetchall()
-                print(responses)
                 cursor.close()
                 responses_text = ''
                 for response in responses:
