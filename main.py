@@ -14,9 +14,10 @@ cursor.close()
 
 import discord
 from discord.ext import commands
-from discord.utils import get
 from asyncio import *
 from time import *
+import json
+import random
 
 
 class CONFIG:
@@ -41,11 +42,17 @@ all_commands = ['help', 'helps', 'helper', 'helping',
                 'rank', 'score', 'level',
                 'mute', 'Mute',
                 'unmute', 'Unmute', 'unMute', 'UnMute'
-                'pedar']
+                'pedar',
+                'response', 'responses']
 
 
 @client.event
 async def on_message(infox):
+    cursor = cnx.cursor()
+    sql = "SELECT * FROM responses WHERE response_to LIKE '{0}'".format(infox.content)
+    cursor.execute(sql)
+    row = cursor.fetchone()
+    cursor.close()
     if infox.content[0:1] == ']':
         command = infox.content[1:].split()[0]
         if command not in all_commands:
@@ -54,15 +61,27 @@ async def on_message(infox):
         else:
             await client.process_commands(infox)
 
+    elif row:
+        cursor = cnx.cursor()
+        sql = "SELECT * FROM response WHERE response_id LIKE '{0}'".format(row[0])
+        cursor.execute(sql)
+        responses = cursor.fetchall()
+        cursor.close()
+        response_text = random.choice(responses)[2]
+        await infox.channel.send(
+            "{0}".format(response_text))
+
     else:
         cursor = cnx.cursor()
-        cursor.execute(("SELECT * FROM users WHERE username LIKE " + str(infox.author.id) + " AND guild LIKE " + str(infox.guild.id)))
+        sql = "SELECT * FROM users WHERE username LIKE {0} AND guild LIKE {1}".format(infox.author.id, infox.guild.id)
+        cursor.execute(sql)
         row = cursor.fetchone()
         cursor.close()
         if row:
             new_score = int(row[2]) + 5
             cursor = cnx.cursor()
-            cursor.execute("UPDATE users SET score=%d WHERE idusers='%d'" % (new_score, row[0]))
+            sql = "UPDATE users SET score = {0} WHERE idusers = {1}".format(new_score, row[0])
+            cursor.execute(sql)
             cnx.commit()
             cursor.close()
             if new_score % 100 == 0:
@@ -72,7 +91,8 @@ async def on_message(infox):
 
         else:
             cursor = cnx.cursor()
-            cursor.execute("INSERT INTO users (username, score, guild) VALUES (%d, %d, %d) " % (infox.author.id, 0, infox.guild.id))
+            sql = "INSERT INTO users (username, score, guild) VALUES ({0}, {1}, {2}) ".format(infox.author.id, 0, infox.guild.id)
+            cursor.execute(sql)
             cnx.commit()
             cursor.close()
 
@@ -93,7 +113,7 @@ async def command_help(infox):
                     "```]rank```"
         )
     help_embed.set_footer(text='Hope you used this helps')
-    help_embed.set_author(name="MahyarNV", url='http://test.mbehzadi.ir')
+    help_embed.set_author(name="MahyarNV", url='http://mbehzadi.ir')
     await infox.send(embed=help_embed)
 
 
@@ -115,10 +135,10 @@ async def command_status(infox, status_type):
             await client.change_presence(status=discord.Status.online)
 
         else:
-            await infox.send(">>> " + infox.author.mention + ' Status e morede nazar vojud nadarad!')
+            await infox.send(">>> " + infox.author.mention + ' Status e morede nazar vojud nadarad be mola!')
 
     else:
-        await infox.send(">>> " + infox.author.mention + " you don't have permission to do that❗❌")
+        await infox.send(">>> " + infox.author.mention + " dastresi nadari be mola!")
 
 
 @client.command(aliases=['activity', 'act', 'active'])
@@ -138,13 +158,13 @@ async def command_activity(infox, act_type='', *, act_text='...'):
                     activity=discord.Activity(type=discord.ActivityType.listening, name=act_text))
 
             else:
-                await infox.send(">>> " + infox.author.mention + ' Status e morede nazar vojud nadarad!')
+                await infox.send(">>> " + infox.author.mention + ' activitie e morede nazar vojud nadarad be mola!')
 
         else:
-            await infox.send(">>> " + infox.author.mention + " status bayad matn dashte bashad")
+            await infox.send(">>> " + infox.author.mention + " activitie bayad matn dashte bashe be mola!")
 
     else:
-        await infox.send(">>> " + infox.author.mention + " you don't have permission to do that❗❌")
+        await infox.send(">>> " + infox.author.mention + " dastresi nadari be mola!")
 
 
 @client.command(aliases=['clear', 'cl'])
@@ -162,7 +182,8 @@ async def command_clear(infox, clear_count=0):
 @client.command(aliases=['rank', 'score', 'level'])
 async def command_rank(infox):
     cursor = cnx.cursor()
-    cursor.execute(("SELECT * FROM users WHERE username LIKE " + str(infox.author.id) + " AND guild LIKE " + str(infox.guild.id)))
+    sql = "SELECT * FROM users WHERE username LIKE {0} AND guild LIKE {1}".format(infox.author.id, infox.guild.id)
+    cursor.execute(sql)
     row = cursor.fetchone()
     cursor.close()
     if row:
@@ -177,7 +198,7 @@ async def command_rank(infox):
 async def command_mute(infox, member: discord.Member = ''):
     if infox.message.author.guild_permissions.administrator:
         if member != '':
-            role = get(infox.guild.roles, name="Muted")
+            role = discord.utils.get(infox.guild.roles, name="Muted")
             await member.add_roles(role)
             await infox.send(">>> " + infox.author.mention + " user e morede nazar mute shod!")
 
@@ -185,14 +206,14 @@ async def command_mute(infox, member: discord.Member = ''):
             await infox.send(">>> " + infox.author.mention + " bayad memberi ra mention konid!")
 
     else:
-        await infox.send(">>> " + infox.author.mention + " dastresie lazem baraye mute kardan nadarid!")
+        await infox.send(">>> " + infox.author.mention + " dastresi nadari be mola!")
 
 
 @client.command(aliases=['unmute', 'Unmute', 'unMute', 'UnMute'])
 async def command_unmute(infox, member: discord.Member = ''):
     if infox.message.author.guild_permissions.administrator:
         if member != '':
-            role = get(infox.guild.roles, name="Muted")
+            role = discord.utils.get(infox.guild.roles, name="Muted")
             await member.remove_roles(role)
             await infox.send(">>> " + infox.author.mention + " user e morede nazar unmute shod!")
 
@@ -200,7 +221,105 @@ async def command_unmute(infox, member: discord.Member = ''):
             await infox.send(">>> " + infox.author.mention + " bayad memberi ra mention konid!")
 
     else:
-        await infox.send(">>> " + infox.author.mention + " dastresie lazem baraye mute kardan nadarid!")
+        await infox.send(">>> " + infox.author.mention + " dastresi nadari be mola!")
+
+
+@client.command(aliases=['response'])
+async def command_response(infox, action='', response_to='', responses=''):
+    if infox.message.author.guild_permissions.administrator:
+        if response_to != '' or responses !='' or action !='':
+            cursor = cnx.cursor()
+            sql = "SELECT * FROM responses WHERE response_to LIKE '{0}'".format(response_to)
+            cursor.execute(sql)
+            row = cursor.fetchone()
+            cursor.close()
+            if action == 'add':
+                if  not row:
+                    response_to = str(response_to.strip('''"'''))
+                    responses = responses.strip('''"''').split('''--''')
+                    while True:
+                        gen_id = random.randint(100000, 999999)
+                        cursor = cnx.cursor()
+                        sql = "SELECT * FROM responses WHERE gen_id LIKE {0}".format(gen_id)
+                        cursor.execute(sql)
+                        row = cursor.fetchone()
+                        cursor.close()
+                        if not row:
+                            break
+
+                    cursor = cnx.cursor()
+                    sql = "INSERT INTO responses (gen_id, guild, response_to) VALUES ({0}, {1}, '{2}')".format(gen_id, infox.guild.id, response_to)
+                    cursor.execute(sql)
+                    res_id = cursor.lastrowid
+                    cnx.commit()
+                    cursor.close()
+                    for response in responses:
+                        cursor = cnx.cursor()
+                        sql = "INSERT INTO response (response_id, text) VALUES ({0}, '{1}')".format(res_id, response)
+                        cursor.execute(sql)
+                        cnx.commit()
+                        cursor.close()
+
+                else:
+                    await infox.send(">>> " + infox.author.mention + " ino ghablan add dade budi, mituni editesh koni!")
+
+            elif action == 'edit':
+                pass
+
+            elif action == 'delete':
+                pass
+
+            else:
+                await infox.send(">>> " + infox.author.mention + " in kari ke mikhay bokoni vojud nadare be mola!")
+
+        else:
+            await infox.send(">>> " + infox.author.mention + " meghdar nadadi be mola!")
+
+    else:
+        await infox.send(">>> " + infox.author.mention + " dastresi nadari be mola!")
+
+
+@client.command(aliases=['responses'])
+async def command_responses(infox):
+    if infox.message.author.guild_permissions.administrator:
+        cursor = cnx.cursor()
+        sql = "SELECT * FROM responses WHERE guild LIKE '{0}'".format(infox.guild.id)
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        cursor.close()
+        if rows:
+            description = "{0} responses: \n".format(len(rows))
+            for row in rows:
+                cursor = cnx.cursor()
+                sql = "SELECT * FROM response WHERE response_id LIKE '{0}'".format(row[0])
+                cursor.execute(sql)
+                responses = cursor.fetchall()
+                print(responses)
+                cursor.close()
+                responses_text = ''
+                for response in responses:
+                    responses_text += '"{0}", '.format(response[2])
+                description += "id: ||{0}||, respond to: {1}, responses: {2} \n".format(row[1], row[3], responses_text)
+            responses_embed = discord.Embed(
+                colour=0x0A75AD,
+                title="Responses",
+                description=description
+                )
+            responses_embed.set_footer(text='shoma mitavanaid id ra copy konid baraye edit va delete kardane response')
+
+        else:
+            responses_embed = discord.Embed(
+                colour=0x0A75AD,
+                title="Responses",
+                description="ta be haal responsi add nakardid!"
+                )
+            responses_embed.set_footer(text="shoma mitavanaid response add konid ba ']response add' (etela'te kame tar ba ]help)")
+
+        responses_embed.set_author(name="MahyarNV", url='http://mbehzadi.ir')
+        await infox.send(embed=responses_embed)
+
+    else:
+        await infox.send(">>> " + infox.author.mention + " dastresi nadari be mola!")
 
 
 client.run(CONFIG.TOKEN)
