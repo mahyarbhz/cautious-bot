@@ -23,7 +23,7 @@ import random
 class CONFIG:
     TOKEN = ''
     BOT_ID = ''
-    PREFIX = ']'
+    PREFIX = ''
 
 
 client = commands.Bot(command_prefix=CONFIG.PREFIX)
@@ -44,7 +44,8 @@ all_commands = ['help', 'helps', 'helper', 'helping',
                 'mute', 'Mute',
                 'unmute', 'Unmute', 'unMute', 'UnMute'
                 'pedar',
-                'response', 'responses']
+                'response', 'responses',
+                'channel']
 
 
 @client.event
@@ -54,7 +55,7 @@ async def on_message(infox):
     cursor.execute(sql)
     row = cursor.fetchone()
     cursor.close()
-    if infox.content[0:1] == ']':
+    if infox.content[0:1] == CONFIG.PREFIX:
         command = infox.content[1:].split()[0]
         if command not in all_commands:
             await infox.channel.send(">>> {0} In command vojud nadarad!".format(infox.author.mention))
