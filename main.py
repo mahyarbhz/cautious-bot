@@ -21,9 +21,9 @@ import random
 
 
 class CONFIG:
-    TOKEN = '' #your bot token
-    BOT_ID = '' #your bot, user id
-    PREFIX = ']' #you can change this prefix by yourself
+    TOKEN = ''
+    BOT_ID = ''
+    PREFIX = ']'
 
 
 client = commands.Bot(command_prefix=CONFIG.PREFIX)
@@ -231,7 +231,7 @@ async def command_response(infox, action='', response_to='', responses=''):
         if response_to != '' and responses !='' and action !='':
             if action == 'add':
                 cursor = cnx.cursor()
-                sql = "SELECT * FROM responses WHERE response_to = '{0}'".format(response_to)
+                sql = "SELECT * FROM responses WHERE response_to = '{0}' AND guild = {1}".format(response_to, infox.guild.id)
                 cursor.execute(sql)
                 row = cursor.fetchone()
                 cursor.close()
