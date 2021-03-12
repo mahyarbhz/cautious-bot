@@ -1,6 +1,6 @@
 from mysql.connector import (connection, MySQLConnection, Error)
 
-cnx = connection.MySQLConnection(user='root', password='pass',
+cnx = connection.MySQLConnection(user='root', password='',
                                  host='127.0.0.1',
                                  database='bot')
 
@@ -106,14 +106,7 @@ async def command_help(infox):
         colour=0x0A75AD,
         title="Help ❓",
         description="Dastoorate admin ha:" \
-                    "```]status [status]```" \
-                    "```]activity [activity] [matn]```" \
-                    "```]clear [meghdar]```" \
-                    "```]mute [mention]```" \
-                    "```]unmute [mention]```" \
-                    "\n" \
-                    "Dastoorate public:" \
-                    "```]rank```"
+                    "```{0}status [status]```\n```{0}activity [activity] [matn]```\n```{0}clear [meghdar]```\n```{0}mute [mention]```\n```{0}unmute [mention]```\n```{0}responses help```\n\nDastoorate public:\n```{0}rank```".format(CONFIG.PREFIX)
         )
     help_embed.set_footer(text='Hope you used this helps')
     help_embed.set_author(name="MahyarNV", url='http://mbehzadi.ir')
@@ -311,47 +304,61 @@ async def command_response(infox, action='', response_to='', responses=''):
 
 
 @client.command(aliases=['responses'])
-async def command_responses(infox):
+async def command_responses(infox, *, action=''):
     if infox.message.author.guild_permissions.administrator:
-        cursor = cnx.cursor()
-        sql = "SELECT * FROM responses WHERE guild = '{0}'".format(infox.guild.id)
-        cursor.execute(sql)
-        rows = cursor.fetchall()
-        cursor.close()
-        if rows:
-            description = "{0} responses: \n".format(len(rows))
-            for row in rows:
-                cursor = cnx.cursor()
-                sql = "SELECT * FROM response WHERE response_id = '{0}'".format(row[0])
-                cursor.execute(sql)
-                responses = cursor.fetchall()
-                cursor.close()
-                responses_text = ''
-                for response in responses:
-                    responses_text += '"{0}" '.format(response[2])
+        if action != 'help':
+            cursor = cnx.cursor()
+            sql = "SELECT * FROM responses WHERE guild = '{0}'".format(infox.guild.id)
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+            cursor.close()
+            if rows:
+                description = "{0} responses: \n".format(len(rows))
+                for row in rows:
+                    cursor = cnx.cursor()
+                    sql = "SELECT * FROM response WHERE response_id = '{0}'".format(row[0])
+                    cursor.execute(sql)
+                    responses = cursor.fetchall()
+                    cursor.close()
+                    responses_text = ''
+                    for response in responses:
+                        responses_text += '"{0}" '.format(response[2])
 
-                description += "id: ||{0}||, respond to: {1}, responses: {2} \n\n".format(row[1], row[3], responses_text)
+                    description += "id: ||{0}||, respond to: {1}, responses: {2} \n\n".format(row[1], row[3], responses_text)
 
-            responses_embed = discord.Embed(
-                colour=0x0A75AD,
-                title="Responses",
-                description=description
-                )
-            responses_embed.set_footer(text='shoma mitavanaid id ra copy konid baraye edit va delete kardane response')
+                responses_embed = discord.Embed(
+                    colour=0x0A75AD,
+                    title="Responses",
+                    description=description
+                    )
+                responses_embed.set_footer(text='shoma mitavanaid id ra copy konid baraye edit va delete kardane response')
+
+            else:
+                responses_embed = discord.Embed(
+                    colour=0x0A75AD,
+                    title="Responses",
+                    description="ta be haal responsi add nakardid!"
+                    )
+                responses_embed.set_footer(text="shoma mitavanaid response add konid ba ']response add' (etela'te kame tar ba ]responses help)")
+
+            responses_embed.set_author(name="MahyarNV", url='http://mbehzadi.ir')
+            await infox.send(embed=responses_embed)
 
         else:
-            responses_embed = discord.Embed(
+            help_embed = discord.Embed(
                 colour=0x0A75AD,
-                title="Responses",
-                description="ta be haal responsi add nakardid!"
+                title="Response help ❓",
+                description="""Baraye add kardane response az\n```"""+CONFIG.PREFIX+"""response add [response to] [responses]```\nestefade mikonim\n""" \
+                            """Be in soorat ke jaye `[response to]` neveshte mishe `"kalame ya jomle ii ke mikhahim behesh response bedim"`\n""" \
+                            """va be jaye `[responses]` neveshte mishe `"response haii ke gharare dade shavad"`\n\nhaal agar yedune response bekhaym bedim ke minevisimesh, amma age bekhaym chand ta response bedim ta be surate random har dafe yeki az aanha dade shavar, anhaa ra ba `--` az ham joda mikonim.\n mesale add kardane response:\n""" \
+                            """```>response add "salam" "salam aziz--salam ✨"```\n\nbaraye delete kardane response ha:\nebteda ba `"""+CONFIG.PREFIX+"""responses` id e response e morede nazare khod ra peyda mikonim,\nSepas ba `"""+CONFIG.PREFIX+"""response delete [id]` be surati ke jaye `[id]`, id e 6 raghami ii ke copy kardim ra mizarim\nBe onvane mesal:\n```"""+CONFIG.PREFIX+"""response delete 123456```"""
                 )
-            responses_embed.set_footer(text="shoma mitavanaid response add konid ba ']response add' (etela'te kame tar ba ]help)")
-
-        responses_embed.set_author(name="MahyarNV", url='http://mbehzadi.ir')
-        await infox.send(embed=responses_embed)
+            help_embed.set_author(name="MahyarNV", url='http://mbehzadi.ir')
+            await infox.send(embed=help_embed)
 
     else:
         await infox.send(">>> {0} dastresi nadari be mola!".format(infox.author.mention))
+
 
 
 client.run(CONFIG.TOKEN)
