@@ -23,7 +23,7 @@ import random
 class CONFIG:
     TOKEN = ''
     BOT_ID = ''
-    PREFIX = ''
+    PREFIX = '>'
 
 
 client = commands.Bot(command_prefix=CONFIG.PREFIX)
@@ -45,7 +45,8 @@ all_commands = ['help', 'helps', 'helper', 'helping',
                 'unmute', 'Unmute', 'unMute', 'UnMute'
                 'pedar',
                 'response', 'responses',
-                'channel']
+                'channel',
+                'kick']
 
 
 @client.event
@@ -360,5 +361,19 @@ async def command_responses(infox, *, action=''):
         await infox.send(">>> {0} dastresi nadari be mola!".format(infox.author.mention))
 
 
+@client.command(aliases=['kick'])
+async def command_kick(infox, member: discord.Member= None, *, reason= None):
+    if infox.message.author.guild_permissions.administrator:
+        if not member:
+            await infox.send(">>> {0} bayad memberi ra mention konid!".format(infox.author.mention))
+
+        else:
+            if not reason:
+                reason = "Kick for nothing ;)!"
+
+            await member.kick(reason= reason)
+
+    else:
+        await infox.send(">>> {0} shoma dastresie in kar ra nadarid!".format(infox.author.mention))
 
 client.run(CONFIG.TOKEN)
