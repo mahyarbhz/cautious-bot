@@ -1,6 +1,6 @@
 from mysql.connector import (connection, MySQLConnection, Error)
 
-cnx = connection.MySQLConnection(user='root', password='',
+cnx = connection.MySQLConnection(user='root', password='password',
                                  host='127.0.0.1',
                                  database='bot')
 
@@ -11,6 +11,14 @@ rows = cursor.fetchall()
 print('Total Row(s):', cursor.rowcount)
 cursor.close()
 # End Connection test
+
+def truncate(table):
+    cursor = cnx.cursor()
+    cursor.execute("truncate {0}".format(table))
+    cnx.commit()
+    cursor.close()
+
+# truncate('users')
 
 import discord
 from discord.ext import commands
@@ -35,70 +43,54 @@ async def on_ready():
     print('Bot Onlined')
 
 
-all_commands = ['help', 'helps', 'helper', 'helping',
-                'GG', 'Gg', 'gg', 'gG',
-                'status', 'setstatus', 'setst', 'set_status',
-                'activity', 'act', 'active',
-                'clear', 'cl',
-                'rank', 'score', 'level',
-                'mute', 'Mute',
-                'unmute', 'Unmute', 'unMute', 'UnMute'
-                'pedar',
-                'response', 'responses',
-                'channel',
-                'kick']
+@client.event
+async def on_command_error(infox, error):
+    if isinstance(error, commands.CommandNotFound):
+        await infox.channel.send(">>> {0} in command vojud nadarad!".format(infox.author.mention))
 
 
 @client.event
 async def on_message(infox):
     cursor = cnx.cursor()
-    sql = "SELECT * FROM responses WHERE response_to = '{0}'".format(infox.content)
+    sql = "SELECT * FROM responses WHERE response_to = '{0}' AND guild = {1}".format(infox.content, infox.guild.id)
     cursor.execute(sql)
     row = cursor.fetchone()
     cursor.close()
-    if infox.content[0:1] == CONFIG.PREFIX:
-        command = infox.content[1:].split()[0]
-        if command not in all_commands:
-            await infox.channel.send(">>> {0} In command vojud nadarad!".format(infox.author.mention))
-
-        else:
-            await client.process_commands(infox)
-
-    else:
-        if infox.author.id != int(CONFIG.BOT_ID):
-            if row:
-                cursor = cnx.cursor()
-                sql = "SELECT * FROM response WHERE response_id = '{0}'".format(row[0])
-                cursor.execute(sql)
-                responses = cursor.fetchall()
-                cursor.close()
-                random_response = random.choice(responses)
-                response_text = random_response[2]
-                await infox.channel.send(
-                    "{0}".format(response_text))
-
+    if infox.author.id != int(CONFIG.BOT_ID):
+        if row:
             cursor = cnx.cursor()
-            sql = "SELECT * FROM users WHERE username = {0} AND guild = {1}".format(infox.author.id, infox.guild.id)
+            sql = "SELECT * FROM response WHERE response_id = '{0}'".format(row[0])
             cursor.execute(sql)
-            row = cursor.fetchone()
+            responses = cursor.fetchall()
             cursor.close()
-            if row:
-                new_score = int(row[2]) + 5
-                cursor = cnx.cursor()
-                sql = "UPDATE users SET score = {0} WHERE idusers = {1}".format(new_score, row[0])
-                cursor.execute(sql)
-                cnx.commit()
-                cursor.close()
-                if new_score % 100 == 0:
-                    rank = new_score // 100
-                    await infox.channel.send(">>> {0} GG, ranke {1} mobarake be mola :))".format(infox.author.mention, rank))
+            random_response = random.choice(responses)
+            response_text = random_response[2]
+            await infox.channel.send("{0}".format(response_text))
 
-        else:
+        cursor = cnx.cursor()
+        sql = "SELECT * FROM users WHERE userid = {0} AND guild = {1}".format(infox.author.id, infox.guild.id)
+        cursor.execute(sql)
+        row = cursor.fetchone()
+        cursor.close()
+        if row:
+            new_score = int(row[2]) + 5
             cursor = cnx.cursor()
-            sql = "INSERT INTO users (username, score, guild) VALUES ({0}, {1}, {2}) ".format(infox.author.id, 0, infox.guild.id)
+            sql = "UPDATE users SET score = {0} WHERE id = {1}".format(new_score, row[0])
             cursor.execute(sql)
             cnx.commit()
             cursor.close()
+            if new_score % 100 == 0:
+                rank = new_score // 100
+                await infox.channel.send(">>> {0} GG, ranke {1} mobarake be mola :))".format(infox.author.mention, rank))
+
+        else:
+            cursor = cnx.cursor()
+            sql = "INSERT INTO users (userid, score, guild) VALUES ({0}, {1}, {2}) ".format(infox.author.id, 0, infox.guild.id)
+            cursor.execute(sql)
+            cnx.commit()
+            cursor.close()
+
+    await client.process_commands(infox)
 
 
 @client.command(aliases=['help', 'helps', 'helper', 'helping'])
@@ -107,7 +99,7 @@ async def command_help(infox):
         colour=0x0A75AD,
         title="Help ❓",
         description="Dastoorate admin ha:" \
-                    "```{0}status [status]```\n```{0}activity [activity] [matn]```\n```{0}clear [meghdar]```\n```{0}mute [mention]```\n```{0}unmute [mention]```\n```{0}responses help```\n\nDastoorate public:\n```{0}rank```".format(CONFIG.PREFIX)
+                    "```{0}status [status]```\n```{0}activity [activity] [matn]```\n```{0}clear [meghdar]```\n```{0}mute [mention]```\n```{0}unmute [mention]```\n```{0}responses help```\n```{0}kick [mention] [reason]```\n\nDastoorate public:\n```{0}rank```".format(CONFIG.PREFIX)
         )
     help_embed.set_footer(text='Hope you used this helps')
     help_embed.set_author(name="MahyarNV", url='http://mbehzadi.ir')
@@ -171,14 +163,12 @@ async def command_clear(infox, clear_count=0):
     else:
         await infox.channel.purge(limit=int(clear_count) + 1)
         await infox.send(">>> " + str(clear_count) + " message pak shod✔")
-        # sleep(2)
-        # await infox.channel.purge(limit=1)
 
 
 @client.command(aliases=['rank', 'score', 'level'])
 async def command_rank(infox):
     cursor = cnx.cursor()
-    sql = "SELECT * FROM users WHERE username = {0} AND guild = {1}".format(infox.author.id, infox.guild.id)
+    sql = "SELECT * FROM users WHERE userid = {0} AND guild = {1}".format(infox.author.id, infox.guild.id)
     cursor.execute(sql)
     row = cursor.fetchone()
     cursor.close()
