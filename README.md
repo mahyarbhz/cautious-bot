@@ -7,4 +7,4 @@ A discord admin bot 🤖 to help you make your server better 🚀...
   </p>
 </div>
 <hr/>
-To see bot abilities just use **>help** after config your bot. ✨
+To see bot abilities just use <b>>help</b> after config your bot. ✨
