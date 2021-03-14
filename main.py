@@ -1,6 +1,6 @@
 from mysql.connector import (connection, MySQLConnection, Error)
 
-cnx = connection.MySQLConnection(user='root', password='password',
+cnx = connection.MySQLConnection(user='root', password='',
                                  host='127.0.0.1',
                                  database='bot')
 
@@ -49,7 +49,7 @@ async def on_command_error(infox, error):
         await infox.channel.send(">>> {0} in command vojud nadarad!".format(infox.author.mention))
 
     if isinstance(error, commands.MissingPermissions):
-        await ctx.send(">>> {0} shoma dastresie in kar ra nadarid❌".format(infox.author.mention))
+        await infox.send(">>> {0} shoma dastresie in kar ra nadarid❌".format(infox.author.mention))
 
 
 @client.event

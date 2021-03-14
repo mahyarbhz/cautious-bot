@@ -1,4 +1,10 @@
 # cautious-bot
-A discord bot to help you make your server better.
-
-this readme will update soon...
+A discord admin bot 🤖 to help you make your server better 🚀...
+<br/><hr/>
+✔ You can set your bot configs here:<br/>
+<div align='left'>
+    <a href='https://github.com/MahyarNV/cautious-bot'><img src='https://github.com/MahyarNV/cautious-bot/blob/main/media/bot-config.png' width='300' alt='Cautious Bot Logo' /></a><br/>
+  </p>
+</div>
+<hr/>
+To see bot abilities just use **>help** after config your bot. ✨
