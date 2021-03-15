@@ -1,16 +1,8 @@
 from mysql.connector import (connection, MySQLConnection, Error)
 
-cnx = connection.MySQLConnection(user='root', password='',
+cnx = connection.MySQLConnection(user='root', password='password',
                                  host='127.0.0.1',
                                  database='bot')
-
-# Connection test
-cursor = cnx.cursor()
-cursor.execute("SELECT * FROM users")
-rows = cursor.fetchall()
-print('Total Row(s):', cursor.rowcount)
-cursor.close()
-# End Connection test
 
 def truncate(table):
     cursor = cnx.cursor()
@@ -19,6 +11,14 @@ def truncate(table):
     cursor.close()
 
 # truncate('users')
+
+# Connection test
+cursor = cnx.cursor()
+cursor.execute("SELECT * FROM users")
+rows = cursor.fetchall()
+print('Total Row(s):', cursor.rowcount)
+cursor.close()
+# End Connection test
 
 import discord
 from discord.ext import commands
@@ -31,6 +31,7 @@ import random
 class CONFIG:
     TOKEN = ''
     BOT_ID = ''
+    MAIN_GUILD_ID = ''
     PREFIX = '>'
 
 
@@ -40,6 +41,7 @@ client.remove_command('help')
 
 @client.event
 async def on_ready():
+    await client.change_presence(activity=discord.Game(name="with codes!"))
     print('Bot Onlined')
 
 
@@ -116,40 +118,55 @@ async def command_gg(infox, *, pos='person'):
 
 @client.command(aliases=['status', 'setstatus', 'setst', 'set_status'])
 @commands.has_permissions(administrator=True)
-async def command_status(infox, status_type):
-    if status_type == 'idle':
-        await client.change_presence(status=discord.Status.idle)
+async def command_status(infox, *, status_type):
+    status_type = status_type.lower()
+    if infox.guild.id == int(CONFIG.MAIN_GUILD_ID):
+        if status_type == 'idle':
+            await client.change_presence(status=discord.Status.idle)
+            await infox.send(">>> {0} Status set shod be mola!".format(infox.author.mention))
 
-    elif status_type == 'dnd':
-        await client.change_presence(status=discord.Status.dnd)
+        elif status_type == 'dnd' or status_type == 'do not disturb' or status_type == "don't disturb":
+            await client.change_presence(status=discord.Status.dnd)
+            await infox.send(">>> {0} Status set shod be mola!".format(infox.author.mention))
 
-    elif status_type == 'online':
-        await client.change_presence(status=discord.Status.online)
+        elif status_type == 'online':
+            await client.change_presence(status=discord.Status.online)
+            await infox.send(">>> {0} Status set shod be mola!".format(infox.author.mention))
+
+        else:
+            await infox.send(">>> {0} Status e morede nazar vojud nadarad be mola!".format(infox.author.mention))
 
     else:
-        await infox.send(">>> {0} Status e morede nazar vojud nadarad be mola!".format(infox.author.mention))
+        await infox.send(">>> {0} In dastoor baraye server e asli faal ast!".format(infox.author.mention))
 
 
 @client.command(aliases=['activity', 'act', 'active'])
 @commands.has_permissions(administrator=True)
 async def command_activity(infox, act_type='', *, act_text='...'):
-    if act_text != '...':
-        if act_type == 'playing':
-            await client.change_presence(activity=discord.Game(name=act_text))
+    if infox.guild.id == int(CONFIG.MAIN_GUILD_ID):
+        if act_text != '...':
+            if act_type == 'playing':
+                await client.change_presence(activity=discord.Game(name=act_text))
+                await infox.send(">>> {0} Activity set shod, GG!".format(infox.author.mention))
 
-        elif act_type == 'watching':
-            await client.change_presence(
-                activity=discord.Activity(type=discord.ActivityType.watching, name=act_text))
+            elif act_type == 'watching':
+                await client.change_presence(
+                    activity=discord.Activity(type=discord.ActivityType.watching, name=act_text))
+                await infox.send(">>> {0} Activity set shod, GG!".format(infox.author.mention))
 
-        elif act_type == 'listening':
-            await client.change_presence(
-                activity=discord.Activity(type=discord.ActivityType.listening, name=act_text))
+            elif act_type == 'listening':
+                await client.change_presence(
+                    activity=discord.Activity(type=discord.ActivityType.listening, name=act_text))
+                await infox.send(">>> {0} Activity set shod, GG!".format(infox.author.mention))
+
+            else:
+                await infox.send(">>> {0} activitie e morede nazar vojud nadarad be mola!".format(infox.author.mention))
 
         else:
-            await infox.send(">>> {0} activitie e morede nazar vojud nadarad be mola!".format(infox.author.mention))
+            await infox.send(">>> {0} activitie bayad matn dashte bashe be mola!".format(infox.author.mention))
 
     else:
-        await infox.send(">>> {0} activitie bayad matn dashte bashe be mola!".format(infox.author.mention))
+        await infox.send(">>> {0} In dastoor baraye server e asli faal ast!".format(infox.author.mention))
 
 
 @client.command(aliases=['clear', 'cl'])
