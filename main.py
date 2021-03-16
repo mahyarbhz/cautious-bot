@@ -33,6 +33,7 @@ class CONFIG:
     BOT_ID = ''
     MAIN_GUILD_ID = ''
     PREFIX = '>'
+    JOIN_INS_ID = ''
 
 
 client = commands.Bot(command_prefix=CONFIG.PREFIX)
@@ -97,6 +98,21 @@ async def on_message(infox):
 
     await client.process_commands(infox)
 
+
+@client.event
+async def on_voice_state_update(member=None, before=None, after=None):
+    # print(before, after)
+    if after:
+        if after.channel.id == int(CONFIG.JOIN_INS_ID):
+            category = after.channel.category
+            await member.guild.create_voice_channel("{0}'s voice".format(member.name), overwrites=None, category=category, reason=None)
+            channel = discord.utils.get(after.channel.guild.voice_channels, name = "{0}'s voice".format(member.name))
+            await member.move_to(channel)
+
+    # channel = discord.utils.get(after.channel.guild.voice_channels, name = "{0}'s voice".format(member.name))
+    # if channel and before:
+    #     if before.channel.id == channel.id:
+    #         channel.delete()
 
 @client.command(aliases=['help', 'helps', 'helper', 'helping'])
 async def command_help(infox):
@@ -390,6 +406,16 @@ async def command_send(infox, channel=None, *, message=None):
 
     else:
         await infox.send(">>> {0} meghdar nadadi!".format(infox.author.mention))
+
+@client.command(aliases=['getvoiceid'])
+@commands.has_permissions(administrator=True)
+async def command_getvoiceid(infox):
+    if infox.author.voice and infox.author.voice.channel:
+        channel = infox.author.voice.channel
+        print(channel.id)
+    else:
+        await infox.send(">>> {0} be voice channel ii vasl nistid!".format(infox.author.mention))
+        return
 
 
 client.run(CONFIG.TOKEN)
