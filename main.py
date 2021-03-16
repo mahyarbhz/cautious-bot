@@ -1,4 +1,4 @@
-from mysql.connector import (connection, MySQLConnection, Error)
+from mysql.connector import (connection, Error)
 
 cnx = connection.MySQLConnection(user='root', password='password',
                                  host='127.0.0.1',
@@ -104,7 +104,7 @@ async def command_help(infox):
         colour=0x0A75AD,
         title="Help ❓",
         description="Dastoorate admin ha:" \
-                    "```{0}status [status]```\n```{0}activity [activity] [matn]```\n```{0}clear [meghdar]```\n```{0}mute [mention]```\n```{0}unmute [mention]```\n```{0}responses help```\n```{0}kick [mention] [reason]```\n```{0}ban [mention] [reason]```\n\nDastoorate public:\n```{0}rank```".format(CONFIG.PREFIX)
+                    "```{0}status [status]```\n```{0}activity [activity] [matn]```\n```{0}clear [meghdar]```\n```{0}mute [mention]```\n```{0}unmute [mention]```\n```{0}responses help```\n```{0}kick [mention] [reason]```\n```{0}ban [mention] [reason]```\n```{0}send [guild] [message]```\n\nDastoorate public:\n```{0}rank```".format(CONFIG.PREFIX)
         )
     help_embed.set_footer(text='Hope you used this helps')
     help_embed.set_author(name="MahyarNV", url='http://mbehzadi.ir')
@@ -379,6 +379,17 @@ async def command_ban(infox, member: discord.Member= None, *, reason= None):
 
         await member.ban(reason= reason)
         await infox.send(">>> {0} user, ban shod".format(infox.author.mention))
+
+
+@client.command(aliases=['send'])
+@commands.has_permissions(administrator=True)
+async def command_send(infox, channel=None, *, message=None):
+    if channel and message:
+        channel = client.get_channel(int(channel[2:len(channel)-1]))
+        await channel.send(message)
+
+    else:
+        await infox.send(">>> {0} meghdar nadadi!".format(infox.author.mention))
 
 
 client.run(CONFIG.TOKEN)
