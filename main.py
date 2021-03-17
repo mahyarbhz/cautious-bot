@@ -43,6 +43,7 @@ client.remove_command('help')
 @client.event
 async def on_ready():
     await client.change_presence(activity=discord.Game(name="with codes!"))
+    print(client)
     print('Bot Onlined')
 
 
@@ -101,18 +102,20 @@ async def on_message(infox):
 
 @client.event
 async def on_voice_state_update(member=None, before=None, after=None):
-    # print(before, after)
-    if after:
+    if after.channel:
         if after.channel.id == int(CONFIG.JOIN_INS_ID):
             category = after.channel.category
             await member.guild.create_voice_channel("{0}'s voice".format(member.name), overwrites=None, category=category, reason=None)
             channel = discord.utils.get(after.channel.guild.voice_channels, name = "{0}'s voice".format(member.name))
             await member.move_to(channel)
 
-    # channel = discord.utils.get(after.channel.guild.voice_channels, name = "{0}'s voice".format(member.name))
-    # if channel and before:
-    #     if before.channel.id == channel.id:
-    #         channel.delete()
+    if before.channel:
+        channel = discord.utils.get(before.channel.guild.voice_channels, name = "{0}'s voice".format(member.name))
+        if before.channel == channel:
+            await channel.delete()
+
+    else:
+        pass
 
 @client.command(aliases=['help', 'helps', 'helper', 'helping'])
 async def command_help(infox):
@@ -186,6 +189,7 @@ async def command_activity(infox, act_type='', *, act_text='...'):
 
 
 @client.command(aliases=['clear', 'cl'])
+@commands.has_permissions(manage_messages=True)
 async def command_clear(infox, clear_count=0):
     if clear_count == 0:
         await infox.send("0 message nemitavanad pak shavad❌")
