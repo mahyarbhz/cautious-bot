@@ -1,6 +1,6 @@
 from mysql.connector import (connection, Error)
 
-cnx = connection.MySQLConnection(user='root', password='password',
+cnx = connection.MySQLConnection(user='root', password='',
                                  host='127.0.0.1',
                                  database='bot')
 
@@ -408,6 +408,13 @@ async def command_send(infox, channel=None, *, message=None):
 
     else:
         await infox.send(">>> {0} meghdar nadadi!".format(infox.author.mention))
+
+
+@client.command(aliases=['senddm'])
+@commands.has_permissions(administrator=True)
+async def command_senddm(infox, member: discord.Member= None, *, message= None):
+    await member.send(message)
+
 
 @client.command(aliases=['getvoiceid'])
 @commands.has_permissions(administrator=True)
