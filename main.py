@@ -30,7 +30,6 @@ import random
 
 class CONFIG:
     TOKEN = ''
-    BOT_ID = ''
     MAIN_GUILD_ID = ''
     PREFIX = '>'
     JOIN_INS_ID = ''
@@ -43,7 +42,6 @@ client.remove_command('help')
 @client.event
 async def on_ready():
     await client.change_presence(activity=discord.Game(name="with codes!"))
-    print(client)
     print('Bot Onlined')
 
 
@@ -63,7 +61,7 @@ async def on_message(infox):
     cursor.execute(sql)
     row = cursor.fetchone()
     cursor.close()
-    if infox.author.id != int(CONFIG.BOT_ID):
+    if infox.author.id != client.user.id:
         if row:
             cursor = cnx.cursor()
             sql = "SELECT * FROM response WHERE response_id = '{0}'".format(row[0])
