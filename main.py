@@ -121,7 +121,7 @@ async def command_help(infox):
         colour=0x0A75AD,
         title="Help ❓",
         description="Dastoorate admin ha:" \
-                    "```{0}status [status]```\n```{0}activity [activity] [matn]```\n```{0}clear [meghdar]```\n```{0}mute [mention]```\n```{0}unmute [mention]```\n```{0}responses help```\n```{0}kick [mention] [reason]```\n```{0}ban [mention] [reason]```\n```{0}send [guild] [message]```\n\nDastoorate public:\n```{0}rank```".format(CONFIG.PREFIX)
+                    "```{0}status [status]```\n```{0}activity [activity] [matn]```\n```{0}clear [meghdar]```\n```{0}mute [mention]```\n```{0}unmute [mention]```\n```{0}responses help```\n```{0}kick [mention] [reason]```\n```{0}ban [mention] [reason]```\n```{0}send [guild] [message]```\n```{0}senddm [@member] [message]```\n```{0}getvoiceid (just connect to any channel you want and use this command)```\n\nDastoorate public:\n```{0}rank```".format(CONFIG.PREFIX)
         )
     help_embed.set_footer(text='Hope you used this helps')
     help_embed.set_author(name="MahyarNV", url='http://mbehzadi.ir')
